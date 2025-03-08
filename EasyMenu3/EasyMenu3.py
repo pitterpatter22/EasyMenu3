@@ -155,6 +155,8 @@ class easymenu:
         print("\n")
                 
         while True:
+            index_counter = 1  # Reset for correct numbering before printing
+            
             print(cprint.header(f"{cprint.BOLD}{cprint.UNDERLINE}Menu:"))
             
             success = False
@@ -166,10 +168,16 @@ class easymenu:
                 if value.get('key', None):
                     print(cprint.colored(f"{value['key']}. {value['name']}", value['color']))
                 else:
-                    print(cprint.colored(f"{index+1}. {value['name']}", value['color']))
+                    #print(cprint.colored(f"{index+1}. {value['name']}", value['color']))
+                    # If no key, print the correct index and increment counter
+                    print(cprint.colored(f"{index_counter}. {value['name']}", value['color']))
+                    index_counter += 1  # Only increment for items without a key
 
-            choice = str(input("\nWhat option do you want?: "))
-            self.print_debug(f"Choice: {choice}")
+            choice = input("\nWhat option do you want?: ")
+            if choice == '':
+                choice = None
+            else:
+                self.print_debug(f"Choice: {choice}")
             print("\n")
             
             
@@ -190,6 +198,7 @@ class easymenu:
                 4. If no match, print an error message
                 
             '''
+            index_counter = 1 # Reset before matching input
             for index, value in enumerate(sorted_menu):
                 if value.get('key', "") == choice:
                     self.print_debug("Match on key")
@@ -206,7 +215,8 @@ class easymenu:
                     success = True
                     break
                 
-                elif str(index+1) == choice:
+                #elif str(index+1) == choice:
+                elif str(index_counter) == choice:
                     if not value.get('key', False):
                         self.print_debug("\t[+] Match on index")
                         self.print_info(f"Item Selected: {value['name']}")
@@ -221,8 +231,11 @@ class easymenu:
                             print("\n\n")
                         success = True
                         break
+                if not value.get('key', None):  # Only increment index counter for non-key items
+                    index_counter += 1
             if not success:
                 self.print_error("Invalid Choice")
+                print("\n\n")
 
     @staticmethod
     def clear_screen():
