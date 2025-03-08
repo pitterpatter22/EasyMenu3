@@ -4,7 +4,7 @@
 
 EasyMenu3 is a Python-based interactive menu system that allows users to create customizable command-line menus with ease. It provides a structured way to display options, handle user input, and execute actions, making it useful for CLI-based applications.
 
-Available at https://pypi.org/project/easymenu3/0.1.0/
+Available at https://pypi.org/project/easymenu3
 
 [Screenshot](example.png)
 
@@ -23,7 +23,7 @@ Available at https://pypi.org/project/easymenu3/0.1.0/
 To use EasyMenu3, ensure you have Python installed along with the required dependencies:
 
 ```bash
-pip install pyfiglet icecream easymenu3
+pip install easymenu3
 ```
 
 ## Usage
