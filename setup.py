@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="easymenu3",
-    version="0.2.3",
+    version="0.3.0",
     author="PitterPatter",
     author_email="pitter@pitterpatter.io",
     description="A simple and customizable menu system for CLI applications.",

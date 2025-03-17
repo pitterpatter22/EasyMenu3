@@ -1,23 +1,21 @@
 from EasyMenu3 import easymenu
-def example1():
-    app.print_success("example1 ran")
-def example2():
-    app.print_error("example2 ran")
-    
-def custom():
-    app.print_info("Custom Option")
-    input("Press enter to kill this!!!")
-    app.exit_app()
 
-# With optional attributes
-app = easymenu(name="My Custom App", author="Joe Schmo", url="https://github.com", url_label="My Site", quit_item=True, debug=False, make_screen=True)
 
-# Most Basic
-#app = easymenu()
+# Create main menu
+main_menu = easymenu(name="Main Menu", author="Joe Schmo", url="https://github.com/pitterpatter22/EasyMenu3/tree/main", url_label="EasyMenu3")
 
-app.add_menu_option(item_name="Option 1", action=example1)
-app.add_menu_option(item_name="Option 2", action=example2)
-app.add_menu_option(item_name="Custom Option", action=custom, item_key="c", order_weight=1, color='\033[92m')
+# Create a submenu
+sub_menu = easymenu(name="Sub Menu")
+sub_menu.add_menu_option("Sub Option 1", lambda: print("Sub Option 1 Selected"), item_key="1")
+sub_menu.add_menu_option("Sub Option 2", lambda: print("Sub Option 2 Selected"), item_key="2")
 
-#app.print_menu()
-app.start()
+
+main_menu.add_menu_option(item_name="Option 1", action=lambda: print("Main Option 1 Selected"))
+main_menu.add_menu_option(item_name="Option 2", action=lambda: print("Main Option 2 Selected"))
+
+# Add submenu to main menu
+main_menu.add_menu_option("Go to Submenu", sub_menu, item_key="s")
+
+
+# Start the main menu
+main_menu.start()

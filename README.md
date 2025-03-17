@@ -6,9 +6,14 @@ EasyMenu3 is a Python-based interactive menu system that allows users to create 
 
 Available at https://pypi.org/project/easymenu3
 
-[Screenshot](example.png)
+[Screenshot](https://github.com/pitterpatter22/EasyMenu3/blob/main/example.png)
 
-[Example](example.py)
+[Example](https://github.com/pitterpatter22/EasyMenu3/blob/main/example.py)
+
+## New Version 0.3.0
+- Added support for submenus.
+- Simplified entry point for app (`start()`) and added options to trap errors instead of using a seperate method.
+- Adjusted formatting.
 
 ## Features
 - Customizable menu title, author, and URL display
@@ -23,7 +28,7 @@ Available at https://pypi.org/project/easymenu3
 To use EasyMenu3, ensure you have Python installed along with the required dependencies:
 
 ```bash
-pip install easymenu3
+pip install pyfiglet icecream easymenu3
 ```
 
 ## Usage
@@ -31,49 +36,57 @@ Import `easymenu` and create an instance:
 
 ```python
 from EasyMenu3 import easymenu
-def example1():
-    app.print_success("example1 ran")
-def example2():
-    app.print_error("example2 ran")
-    
-def custom():
-    app.print_info("Custom Option")
-    input("Press enter to kill this!!!")
-    app.exit_app()
 
-app = easymenu(name="My Custom App", author="Joe Schmo", url="https://github.com", url_label="My Site")
-app.add_menu_option(item_name="Option 1", action=example1)
-app.add_menu_option(item_name="Option 2", action=example2)
-app.add_menu_option(item_name="Custom Option", action=custom, item_key="c", order_weight=1, color='\033[92m')
 
-app.start()
-# or 
-#app.print_menu()
+# Create main menu
+main_menu = easymenu(name="Main Menu", author="Joe Schmo", url="https://github.com/pitterpatter22/EasyMenu3/tree/main", url_label="EasyMenu3")
+
+# Create a submenu
+sub_menu = easymenu(name="Sub Menu")
+sub_menu.add_menu_option("Sub Option 1", lambda: print("Sub Option 1 Selected"), item_key="1")
+sub_menu.add_menu_option("Sub Option 2", lambda: print("Sub Option 2 Selected"), item_key="2")
+
+
+main_menu.add_menu_option(item_name="Option 1", action=lambda: print("Main Option 1 Selected"))
+main_menu.add_menu_option(item_name="Option 2", action=lambda: print("Main Option 2 Selected"))
+
+# Add submenu to main menu
+main_menu.add_menu_option("Go to Submenu", sub_menu, item_key="s")
+
+
+# Start the main menu
+main_menu.start()
 ```
 
 ## Class: `easymenu`
 ### Constructor Parameters:
 - `name` (str): Optional menu title.
 - `title_font` (str): Font used for the ASCII title (default: "slant").
+- `print_ascii_title`: Boolean that prints the ASCII title if enabled.
+- `print_ascii_title_each_time`: Boolean that prints the ASCII Title each time the menu items are printed.
 - `author` (str): Author name.
 - `url` (str): URL displayed in the menu.
 - `url_label` (str): Custom label for the URL.
 - `debug` (bool): Enable debug messages.
 - `make_screen` (bool): Create a separate terminal screen.
 - `quit_item` (bool): Include a quit option automatically.
+- `catch_errors`: Boolean that runs the menu in a "try except" block to catch errors. Useful for debugging, bad for production...
 
 ### Methods:
 - `add_menu_option(item_name, action, item_key=None, order_weight=None, color=None)`: Adds a new menu item.
-- `print_menu()`: Displays the menu and handles user input.
+- `__print_menu()`: Displays the menu and handles user input. Newly a private method.
 - `start()`: Start the app and continue on errors. Also exits 'cleaner' / handles ctrl+c if a screen is created.
 - `clear_screen()`: Clears the terminal screen.
 - `exit_app()`: Gracefully exits the menu system.
+- `print_menu()`: A placeholder that indicates this method has been depricated and that `start()` should be used instead.
 
 ### Adding a Menu Option:
 Create a new menu item to be displayed:
 - `item_name`: The name to be displayed as a menu item ex: `Do Action`
 - `action`: A function to be run if an item is selected from the menu. 
     - If this is not a function, the value will be printed instead.
+    - *** NEW *** If action is a submenu, set parent menu for tracking
+    - *** NEW *** This allows the use of submenus
 - `item_key`: Optional string to change the key that is displayed in the menu instead of the index. 
     - Instead of `1. Item` the number will be replaced with the `item_key` provided `c. Item`
 - `order_weight`: Optional Integer to change the order of a menu item in the printed menu. 
@@ -95,7 +108,7 @@ Create a new menu item to be displayed:
        /____/                                                 /_/   /_/      
 
 Made by: Joe Schmo
-Visit: [My Site](https://github.com)
+Visit: [My Site](https://github.com/pitterpatter22/EasyMenu3)
 
 Menu:
 c. Custom Option
@@ -105,6 +118,14 @@ q. Quit
 
 
 What option do you want?:
+```
+
+## Building
+
+```
+python3 setup.py sdist bdist_wheel
+
+twine upload dist/*
 ```
 
 ## License

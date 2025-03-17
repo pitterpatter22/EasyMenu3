@@ -11,6 +11,8 @@ ic.configureOutput(prefix='debug -> ')
 class easymenu:
     ''' Create an EasyMenu with some options:\n
         name: Optional Name of the App/Menu to be displayed when printing the menu.\n
+        print_ascii_title: Boolean that prints the ASCII title if enabled\n
+        print_ascii_title_each_time: Boolean that prints the ASCII Title each time the menu items are printed\n
         title_font: The Pyfiglet font to use when printing the title. Defaults to "slant"\n
         author: Optional Value to be printed with the title.\n
         url: Optional Value to be printed with the title.\n
@@ -18,10 +20,13 @@ class easymenu:
         debug: Boolean that enables more debug messages if set to True.\n
         make_screen: Boolean that creates a new terminal screem for app output and then removes it when the app is finished.\n
         quit_item: Boolean that includes a Quit Menu option with a red color at the bottom of the menu if True.\n
+        catch_errors: Boolean that runs the menu in a "try except" block to catch errors. Useful for debugging, bad for production...\n
     '''
-    def __init__(self, name: str = None, title_font = "slant", author: str = None, url: str = None, url_label: str = None, debug: bool = False, make_screen: bool = True, quit_item: bool = True):
+    def __init__(self, name: str = None, print_ascii_title: bool = True, print_ascii_title_each_time: bool = False, title_font = "slant", author: str = None, url: str = None, url_label: str = None, debug: bool = False, make_screen: bool = True, quit_item: bool = True, catch_errors: bool = False):
         
         self.name = name
+        self.print_ascii_title = print_ascii_title
+        self.print_ascii_title_each_time = print_ascii_title_each_time
         self.author = author
         self.title_font = title_font
         self.url_label = url_label
@@ -31,6 +36,7 @@ class easymenu:
         self.make_screen = make_screen
         self.screen_made = False
         self.quit_item = quit_item
+        self.catch_errors = catch_errors
         
         # Use this to pass exit code when exiting app with the start() method. Without this, the exit function runs twice to escape try except finally
         self.exit_code = None
@@ -53,7 +59,7 @@ class easymenu:
                 
         
         ''' Debug Attributes if enabled '''
-        ic(name, author, url, debug, make_screen, quit_item)
+        ic(name, print_ascii_title, author, url, debug, make_screen, quit_item, catch_errors)
         
         ''' Add a default quit option with an order weight of 99 to make sure it is last, and a color of red IF TRUE'''
         if self.quit_item:
@@ -79,11 +85,13 @@ class easymenu:
         ''' Print a message in a Success Format with a check mark\n Ex: [\u2713] Message'''
         print(cprint.ok(f"[\u2713] {message}"))
         
-    @staticmethod
-    def print_title(font, message):
-        ''' Print a Title in large text using pyfiglet '''
-        f = pyfiglet.figlet_format(message, font=font)
-        print(cprint.header(f))
+    def print_title(self, font, message):
+        ''' Print a Title in large text using pyfiglet if enabled '''
+        if self.print_ascii_title:
+            f = pyfiglet.figlet_format(message, font=font)
+            print(cprint.header(f))
+        else:
+            self.print_debug(f"Not printing ASCII Title because {self.print_ascii_title=}")
 
     @staticmethod
     def create_screen():
@@ -104,6 +112,14 @@ class easymenu:
                         The goal is to have any special items ahead of normal items in the menu. Menu items with the same weight will be sorted.\n
             color: Optional ASCII color for the menu item or item from cprint ex: '\\033[91m'. Defaults to no color\n
         '''
+        if isinstance(action, easymenu):  # If action is a submenu, set parent menu
+            action.parent_menu = self  # Track parent menu
+            action.add_menu_option("Back", lambda: None, item_key="b", order_weight=98, color=cprint.BG_GREEN)
+            # if no color is provided, make background green to distinguish between sub menu and menu item
+            if color == cprint.ENDC:
+                color = cprint.BG_GREEN
+
+
         if item_key:
             if not order_weight: 
                 order_weight = 15
@@ -137,10 +153,13 @@ class easymenu:
 
         return escape_mask.format(parameters, uri, label)
 
-        
-    def print_menu(self):
+    
+    def __print_menu(self):
         ''' Main Function to print the menu and execute the actions'''
         sorted_menu = self.sort_menu() # Sort the Menu before printing
+        
+        self.first_time_run = True
+        self.submenu_check = False
         
         # Print an ascii name if one is provided
         if self.name:
@@ -157,7 +176,16 @@ class easymenu:
         while True:
             index_counter = 1  # Reset for correct numbering before printing
             
-            print(cprint.header(f"{cprint.BOLD}{cprint.UNDERLINE}Menu:"))
+            # print the ascii title if was just on a submenu and print again if this isnt the first time the menu was printed AND the option to print each time is true
+            if self.submenu_check:
+                self.print_title(font=self.title_font, message=f"{self.name}\n")
+                self.submenu_check = False
+            elif not self.first_time_run and self.print_ascii_title_each_time:
+                self.print_title(font=self.title_font, message=f"{self.name}\n")
+            elif self.first_time_run:
+                self.first_time_run = False
+            
+            print(cprint.header(f"{cprint.BOLD}{cprint.UNDERLINE}{self.name}:"))
             
             success = False
             ''' Print the menu.
@@ -204,8 +232,15 @@ class easymenu:
                     self.print_debug("Match on key")
                     ic(choice)
                     ic(value)
-                    self.print_info(f"Item Selected: {value['name']}")
-                    if callable(value['action']):
+                    self.print_info(f"Item Selected: {value['name']}\n")
+                    
+                    if isinstance(value['action'], easymenu):  # If the action is a submenu
+                        self.submenu_check = True
+                        value['action'].start()  # Start the submenu
+                    elif value['name'] == "Back":  # If "Back" is selected, just return
+                        return  
+                    
+                    elif callable(value['action']):
                         value['action']()
                         print("\n\n")
                         
@@ -219,7 +254,7 @@ class easymenu:
                 elif str(index_counter) == choice:
                     if not value.get('key', False):
                         self.print_debug("\t[+] Match on index")
-                        self.print_info(f"Item Selected: {value['name']}")
+                        self.print_info(f"Item Selected: {value['name']}\n")
                         ic(choice)
                         ic(value)
                         if callable(value['action']):
@@ -259,14 +294,21 @@ class easymenu:
         self.exit_code = code
         sys.exit(code)
         
+    @staticmethod
+    def print_menu():
+        print(cprint.fail("This method is deprecated. use the 'start' method instead.\nExiting..."))
+        sys.exit(1)
+        
     def start(self):
         ''' Start the app and continue on errors. Also exits 'cleaner' / handles ctrl+c if a screen is created. '''
-        try:
-            self.print_menu()
-        except Exception as e:
-            self.print_error(f"Error: {e}")
-        finally:
-            if self.exit_code is None:
-                self.exit_app()
-            else:
-                sys.exit(self.exit_code)
+        if self.catch_errors:
+            self.print_debug("Catching all errors, you can disable this message by setting debug=False")
+            try:
+                self.__print_menu()
+            except Exception as e:
+                self.print_error(f"Error: {e}")
+            finally:
+                if self.exit_code is not None:  # Only exit if exit_code is explicitly set
+                    sys.exit(self.exit_code)
+        else:
+            self.__print_menu()
