@@ -1,8 +1,14 @@
 from setuptools import setup, find_packages
 
+'''
+python3 setup.py sdist bdist_wheel
+
+twine upload dist/*
+'''
+
 setup(
     name="easymenu3",
-    version="0.3.0",
+    version="0.3.1",
     author="PitterPatter",
     author_email="pitter@pitterpatter.io",
     description="A simple and customizable menu system for CLI applications.",

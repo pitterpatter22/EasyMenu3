@@ -1,4 +1,4 @@
-from .formatter import cprint
+from .formatter import colors, print_table
 import pyfiglet
 import subprocess
 import os
@@ -63,33 +63,33 @@ class easymenu:
         
         ''' Add a default quit option with an order weight of 99 to make sure it is last, and a color of red IF TRUE'''
         if self.quit_item:
-            self.add_menu_option(item_name="Quit", action=self.exit_app, item_key="q", order_weight=99, color=cprint.RED)
+            self.add_menu_option(item_name="Quit", action=self.exit_app, item_key="q", order_weight=99, color=colors.RED)
         
     @staticmethod
     def print_info(message):
         ''' Print a message in an Info Format\n Ex: [+] Message'''
-        print(cprint.okblue(f"[+] {message}"))
+        print(colors.okblue(f"[+] {message}"))
     
     def print_debug(self, message):
         ''' Print a debug message if the self.debug is set to true\n Ex: [+][+] Message'''
         if self.debug:
-            print(cprint.okblue(f"[+][+] {message}"))
+            print(colors.okblue(f"[+][+] {message}"))
     
     @staticmethod
     def print_error(message):
         ''' Print a message in an Error Format\n Ex: [-] Message'''
-        print(cprint.fail(f"[-] {message}"))
+        print(colors.fail(f"[-] {message}"))
     
     @staticmethod
     def print_success(message):
         ''' Print a message in a Success Format with a check mark\n Ex: [\u2713] Message'''
-        print(cprint.ok(f"[\u2713] {message}"))
+        print(colors.ok(f"[\u2713] {message}"))
         
     def print_title(self, font, message):
         ''' Print a Title in large text using pyfiglet if enabled '''
         if self.print_ascii_title:
             f = pyfiglet.figlet_format(message, font=font)
-            print(cprint.header(f))
+            print(colors.header(f))
         else:
             self.print_debug(f"Not printing ASCII Title because {self.print_ascii_title=}")
 
@@ -103,21 +103,21 @@ class easymenu:
         ''' Close a created screen to return the app back to the normal terminal screen '''
         subprocess.run(["tput", "rmcup"])
     
-    def add_menu_option(self, item_name: str, action, item_key: str = None, order_weight: int = None, color=cprint.ENDC):
+    def add_menu_option(self, item_name: str, action, item_key: str = None, order_weight: int = None, color=colors.ENDC):
         ''' Create a new menu item to be displayed:\n
             item_name: The name to be displayed as a menu item ex "Perform Action"\n
             action: A function to be run if an item is selected from the menu. If this is not a function, the value will be printed instead.\n
             item_key: Optional string to change the key that is displayed in the menu instead of the index. Instead of "1. Item" the number will be replaced with the item_key provided.\n
             order_weight: Optional Integer to change the order of a menu item in the printed menu. Default values are 5 for menu items with a custom item_key and 15 for an item without a key.\n
                         The goal is to have any special items ahead of normal items in the menu. Menu items with the same weight will be sorted.\n
-            color: Optional ASCII color for the menu item or item from cprint ex: '\\033[91m'. Defaults to no color\n
+            color: Optional ASCII color for the menu item or item from colors ex: '\\033[91m'. Defaults to no color\n
         '''
         if isinstance(action, easymenu):  # If action is a submenu, set parent menu
             action.parent_menu = self  # Track parent menu
-            action.add_menu_option("Back", lambda: None, item_key="b", order_weight=98, color=cprint.BG_GREEN)
+            action.add_menu_option("Back", lambda: None, item_key="b", order_weight=98, color=colors.BG_GREEN)
             # if no color is provided, make background green to distinguish between sub menu and menu item
-            if color == cprint.ENDC:
-                color = cprint.BG_GREEN
+            if color == colors.ENDC:
+                color = colors.BG_GREEN
 
 
         if item_key:
@@ -166,10 +166,10 @@ class easymenu:
             self.print_title(font=self.title_font, message=f"{self.name}\n")
         
         if self.author:
-            print(cprint.header(f"{cprint.ITALIC}Made by: {self.author}"))
+            print(colors.header(f"{colors.ITALIC}Made by: {self.author}"))
         if self.url:
             link = self.create_link(self.url, self.url_label)
-            print(cprint.header(f"{cprint.ITALIC}Visit: {link}"))
+            print(colors.header(f"{colors.ITALIC}Visit: {link}"))
             
         print("\n")
                 
@@ -185,7 +185,7 @@ class easymenu:
             elif self.first_time_run:
                 self.first_time_run = False
             
-            print(cprint.header(f"{cprint.BOLD}{cprint.UNDERLINE}{self.name}:"))
+            print(colors.header(f"{colors.BOLD}{colors.UNDERLINE}{self.name}:"))
             
             success = False
             ''' Print the menu.
@@ -194,11 +194,11 @@ class easymenu:
             '''
             for index, value in enumerate(sorted_menu):
                 if value.get('key', None):
-                    print(cprint.colored(f"{value['key']}. {value['name']}", value['color']))
+                    print(colors.colored(f"{value['key']}. {value['name']}", value['color']))
                 else:
-                    #print(cprint.colored(f"{index+1}. {value['name']}", value['color']))
+                    #print(colors.colored(f"{index+1}. {value['name']}", value['color']))
                     # If no key, print the correct index and increment counter
-                    print(cprint.colored(f"{index_counter}. {value['name']}", value['color']))
+                    print(colors.colored(f"{index_counter}. {value['name']}", value['color']))
                     index_counter += 1  # Only increment for items without a key
 
             choice = input("\nWhat option do you want?: ")
@@ -296,7 +296,7 @@ class easymenu:
         
     @staticmethod
     def print_menu():
-        print(cprint.fail("This method is deprecated. use the 'start' method instead.\nExiting..."))
+        print(colors.fail("This method is deprecated. use the 'start' method instead.\nExiting..."))
         sys.exit(1)
         
     def start(self):

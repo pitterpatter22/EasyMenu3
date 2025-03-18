@@ -10,6 +10,11 @@ Available at https://pypi.org/project/easymenu3
 
 [Example](https://github.com/pitterpatter22/EasyMenu3/blob/main/example.py)
 
+## New Version 0.3.1
+- Added `print_table` function
+- Adjusted formatting.
+- tidied up a bit
+
 ## New Version 0.3.0
 - Added support for submenus.
 - Simplified entry point for app (`start()`) and added options to trap errors instead of using a seperate method.
@@ -20,7 +25,9 @@ Available at https://pypi.org/project/easymenu3
 - ASCII art title generation using `pyfiglet`
 - Automatic debug message handling with `icecream`
 - Screen handling for clean terminal output
-- Color-coded menu options using a formatter `cprint`
+- Color-coded menu options using included formatter `colors`
+- Easily print a table using `print_table`
+  - Prints a table based on the provided data with optional sorting, theming, and header formatting.
 - Customizable menu item ordering and shortcut keys
 - Supports both function-based and static value-based actions
 
@@ -35,9 +42,20 @@ pip install pyfiglet icecream easymenu3
 Import `easymenu` and create an instance:
 
 ```python
-from EasyMenu3 import easymenu
+from EasyMenu3 import easymenu, print_table, colors
 
+def example_table():
+    # Example Table usage:
+    data = [
+        ["Alice", 30, "Engineer"],
+        ["Bob", 25, "Designer"],
+        ["Charlie", 35, "Teacher"]
+    ]
+    headers = ["Name", "Age", "Occupation"]
 
+    print("Default theme, sorted by Age (ascending):")
+    print_table(data, headers, sort_by="Age", ascending=True, theme="default", header_style=colors.BG_BLUE)
+    
 # Create main menu
 main_menu = easymenu(name="Main Menu", author="Joe Schmo", url="https://github.com/pitterpatter22/EasyMenu3/tree/main", url_label="EasyMenu3")
 
@@ -48,7 +66,7 @@ sub_menu.add_menu_option("Sub Option 2", lambda: print("Sub Option 2 Selected"),
 
 
 main_menu.add_menu_option(item_name="Option 1", action=lambda: print("Main Option 1 Selected"))
-main_menu.add_menu_option(item_name="Option 2", action=lambda: print("Main Option 2 Selected"))
+main_menu.add_menu_option(item_name="Option 2", action=example_table)
 
 # Add submenu to main menu
 main_menu.add_menu_option("Go to Submenu", sub_menu, item_key="s")
@@ -93,39 +111,83 @@ Create a new menu item to be displayed:
     - Default values are `5` for menu items with a custom `item_key` and `15` for an item without an `item_key`.
     - The goal is to have any special items ahead of normal items in the menu. 
     - Menu items with the same weight will be sorted.
-- `color`: Optional ASCII color for the menu item or item from cprint 
-    - ex: `\\033[91m`
+- `color`: Optional ASCII color for the menu item or item from `colors` 
+    - ex: `\\033[91m` or `colors.ENDC`
     - Defaults to no color
+
+
+## Class: `colors`:
+A utility class for ANSI terminal text formatting.
+
+This class provides various ANSI escape codes as class attributes to format text with different
+colors, styles (bold, underline, italic, etc.), and background colors in terminal outputs.
+In addition to the color codes, it includes static methods that wrap messages in these codes,
+making it easy to output colored and styled text in command-line applications.
+
+### Methods:
+- `colored(message, color)`: Wraps the given message with the specified ANSI color code and resets the formatting afterward.
+    - Usage example: `print(colors.colored("Hello, world!", colors.OKBLUE))`
+- `warning(message)`: Returns the message formatted in yellow to indicate a warning or caution.
+    - Usage example: `print(colors.warning("Be careful!"))`
+- `fail(message)`: Returns the message formatted in red to denote an error or failure. It can also be used with sys.exit() for terminating the program.
+    - Usage example: `print(colors.fail("Operation failed."))`
+- `ok(message)`: Returns the message formatted in green, typically used to indicate success or a positive outcome.
+    - Usage example: `print(colors.ok("Operation successful."))`
+- `okblue(message)`: Returns the message formatted in blue for informational output.
+    - Usage example: `print(colors.okblue("Information message."))`
+- `header(message)`: Returns the message formatted in a header (purple-ish) style, suitable for emphasizing titles or section headings.
+    - Usage example: `print(colors.header("Section Header"))`
+
+
+## Function: `print_table`:
+A utility function that prints a table based on the provided data with optional sorting, theming, 
+and header formatting.
+
+### Parameters
+- `data` (list of lists): The table data, where each sublist is a row.
+- `headers` (list, optional): List of header labels for the columns.
+- `sort_by` (int or str, optional): Column index or header name to sort by.
+- `ascending` (bool, optional): True for ascending order, False for descending.
+- `theme` (str, optional): Table theme to use. Options:
+    - `"default"`: Simple table with header separator.
+    - `"bordered"`: Entire table enclosed in a border with lines after each row.
+- `header_style` (str, optional): ANSI escape code for styling the header row)
 
 
 ## Example Menu Output
 ```
-    __  ___         ______           __                     ___              
-   /  |/  /_  __   / ____/_  _______/ /_____  ____ ___     /   |  ____  ____ 
-  / /|_/ / / / /  / /   / / / / ___/ __/ __ \/ __ `__ \   / /| | / __ \/ __ \
- / /  / / /_/ /  / /___/ /_/ (__  ) /_/ /_/ / / / / / /  / ___ |/ /_/ / /_/ /
-/_/  /_/\__, /   \____/\__,_/____/\__/\____/_/ /_/ /_/  /_/  |_/ .___/ .___/ 
-       /____/                                                 /_/   /_/      
+    __  ___      _          __  ___                
+   /  |/  /___ _(_)___     /  |/  /__  ____  __  __
+  / /|_/ / __ `/ / __ \   / /|_/ / _ \/ __ \/ / / /
+ / /  / / /_/ / / / / /  / /  / /  __/ / / / /_/ / 
+/_/  /_/\__,_/_/_/ /_/  /_/  /_/\___/_/ /_/\__,_/  
 
 Made by: Joe Schmo
 Visit: [My Site](https://github.com/pitterpatter22/EasyMenu3)
 
-Menu:
-c. Custom Option
-2. Option 1
-3. Option 2
+Main Menu:
+1. Option 1
+2. Option 2
+s. Go to Submenu
 q. Quit
 
 
-What option do you want?:
-```
+What option do you want?: 2
 
-## Building
 
-```
-python3 setup.py sdist bdist_wheel
+[+] Item Selected: Option 2
 
-twine upload dist/*
+Default theme, sorted by Age (ascending):
+ Name   | Age | Occupation
+--------+-----+-----------
+Bob     | 25  | Designer  
+Alice   | 30  | Engineer  
+Charlie | 35  | Teacher 
+
+What option do you want?: q
+
+[✓] Main Menu Exited Successfully!
+
 ```
 
 ## License
